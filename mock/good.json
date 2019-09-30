@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Smart Keybox",
+    "img": "https://cdn.shopify.com/s/files/1/0121/8386/3392/products/Smart-keybox.png?v=1568601140",
+    "price": 999
+  },
+  {
+    "name": "Smart Deadbolt",
+    "img": "https://cdn.shopify.com/s/files/1/0121/8386/3392/products/Smart-deadbolt_321448e0-47a2-4527-809e-6438aa1dcc69.png?v=1568601106",
+    "price": 899
+  },
+  {
+    "name": "Smart Mortise",
+    "img": "https://cdn.shopify.com/s/files/1/0121/8386/3392/products/Smart-mortise.png?v=1568601208",
+    "price": 799
+  },
+  {
+    "name": "Smart Latch",
+    "img": "https://cdn.shopify.com/s/files/1/0121/8386/3392/products/Smart-latch.png?v=1568601343",
+    "price": 699
+  },
+  {
+    "name": "Smart Padlock",
+    "img": "https://cdn.shopify.com/s/files/1/0121/8386/3392/products/Smart-padlock.png?v=1568601423",
+    "price": 199
+  }
+]
