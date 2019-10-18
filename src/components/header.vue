@@ -8,31 +8,94 @@
       </div>
 
       <ul class="nav flex-wrap flex-1 flex-content-end flex-align-center">
-        <li class="nav-item">
-          登录
-        </li>
+        <li class="nav-item" @click="loginDialogShow=true" v-if="!loginStatus"> 登录 </li>
+        <li class="nav-item" @click="logOut" v-else>{{userInfo.userName}} &nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;退出登录 </li>
       </ul>
     </header>
+
+    <el-dialog
+      title="登录"
+      :visible.sync="loginDialogShow"
+      class="login">
+      <form @submit.prevent="submit">
+
+        <div>
+          <label><span>用户名：</span><input type="name" v-model="userName"></label>
+        </div>
+
+        <div>
+          <label><span>密码：</span><input type="password" v-model="userPwd"></label>
+        </div>
+
+        <p class="error" v-show="LoginError">用户名或密码错误</p>
+        <input class="submit" type="submit" value="提交">
+      </form>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
-  export default {
-    data () {
-      return {}
-    },
-    created () {
-    },
-    mounted () {
-    },
-    methods: {
-      NavListTaggle () {
-        this.ABOUTNavList = !this.ABOUTNavList
-      }
-    },
-    destroyed () {
+  var that;
+    export default {
+        data() {
+            return {
+                loginDialogShow:false,
+                userName:"",
+                userPwd:"",
+                LoginError:false,
+                loginStatus:false,
+                userInfo:{}
+            }
+        },
+        created() {
+            that = this;
+            if(this.$cookies.get("userId")){
+                this.userInfo = this.$cookies.get("userId")
+                this.loginStatus = true;
+            }
+        },
+        methods: {
+            submit(){
+                if(that.userName === "" && that.userPwd === "") return false;
+
+                that.$post("/user/login", {
+                    name:this.userName,
+                    password:this.userPwd
+                }).then(res => {
+                    if (res.status === 0) {
+                        that.$message({
+                            message: '恭喜你，登录成功',
+                            type: 'success'
+                        });
+                        that.userInfo = res.result;
+                        that.$cookies.set("userId",res.result)
+                        that.loginDialogShow = false
+                        that.loginStatus = true;
+                    }else{
+                        that.LoginError = true
+                    }
+                })
+            },
+            logOut(){
+                that.$confirm('退出登录, 是否继续?', '退出提醒', {
+                    confirmButtonText: '退出',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    that.$post("/user/logout").then(res => {
+                        if (res.status === 0) {
+                            this.$cookies.remove("userId")
+                            this.loginStatus = false;
+                        }
+                    })
+                })
+            }
+        },
+        destroyed() {
+        }
     }
-  }
 </script>
 
 <style scoped lang="scss">
@@ -137,6 +200,7 @@
         height: 34px;
         display: inline-block;
         margin-right: 30px;
+
         img {
           height: 100%;
         }
@@ -169,11 +233,11 @@
         text-transform: uppercase;
         cursor: pointer;
 
-        &.active{
+        &.active {
           background: #333132;
         }
 
-        &:first-child{
+        &:first-child {
           padding: 0 30px;
         }
 
@@ -181,7 +245,7 @@
           background: #333132;
         }
 
-        &>a{
+        & > a {
           padding: 0 30px;
           display: block;
           height: 50px;
@@ -209,7 +273,7 @@
               text-align: left;
               padding-bottom: 20px;
 
-              &.active{
+              &.active {
                 border-bottom: 3px solid white;
               }
 
@@ -234,7 +298,7 @@
     @media only screen and (max-width: 1500px) {
       margin: 0 50px;
 
-      .nav li>div>div{
+      .nav li > div > div {
         padding: 50px 50px;
       }
 
@@ -254,35 +318,35 @@
     width: 100%;
     height: 100%;
 
-    ul{
+    ul {
       margin: 0 20px;
       background: #1F1D1E;
       border: none;
 
-      li{
-        border-bottom: 1px solid  #585858;
+      li {
+        border-bottom: 1px solid #585858;
         text-align: left;
         padding: 0px !important;
 
-        &:hover{
-          a{
+        &:hover {
+          a {
             color: #4a4a4a;
           }
         }
 
-        &:first-child{
+        &:first-child {
           border-top: 1px solid #585858;
         }
 
-        a{
+        a {
           display: block;
           font-family: Roboto-Regular;
           font-size: 16px;
           color: #FFFFFF;
           letter-spacing: 0;
 
-          &.router-link-exact-active{
-            border-bottom: 2px solid  white;
+          &.router-link-exact-active {
+            border-bottom: 2px solid white;
           }
         }
       }
@@ -292,6 +356,48 @@
       padding: 20px 0px;
     }
 
+  }
+
+  .login {
+    text-align: center;
+
+    form{
+      margin: 0 20%;
+      &>div {
+        text-align: left;
+        margin-top: 20px;
+
+        &>label{
+          display: flex;
+          justify-content: space-between;
+          align-items:center;
+        }
+
+        input {
+          width: 70%;
+          border: 1px solid #cccccc;
+          padding: 8px;
+        }
+
+      }
+
+      .error{
+        text-align: right;
+        font-size: 12px;
+        margin-top: 5px;
+        color: #F4436C;
+      }
+
+      .submit{
+        margin-top: 30px;
+        width: 100%;
+        border: none;
+        background: #F4436C;
+        color: white;
+        padding: 8px 0;
+        cursor: pointer;
+      }
+    }
   }
 
 </style>
@@ -316,6 +422,7 @@
         letter-spacing: 0;
         margin-bottom: 15px;
         color: #1C1E4D;
+
         a {
           font-size: 20px;
           font-family: Roboto-Medium;
@@ -333,10 +440,19 @@
         line-height: 24px;
         margin-bottom: 15px;
         cursor: pointer;
+
         &.active {
           color: #000000;
         }
       }
     }
+  }
+
+  .el-dialog {
+    max-width: 500px;
+    margin: 0 !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 </style>
