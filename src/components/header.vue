@@ -10,6 +10,7 @@
       <ul class="nav flex-wrap flex-1 flex-content-end flex-align-center">
         <li class="nav-item" @click="loginDialogShow=true" v-if="!loginStatus"> 登录 </li>
         <li class="nav-item" @click="logOut" v-else>{{userInfo.userName}} &nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;退出登录 </li>
+        <li class="nav-item" ><i class="el-icon-shopping-cart-2">{{cartCount > 0 ? '(' + cartCount + ')' : ''}}</i></li>
       </ul>
     </header>
 
@@ -32,12 +33,24 @@
       </form>
     </el-dialog>
 
+    <VueModal :loginShow="loginShow" v-on:close="closeModal">
+      <p class="title" slot="title">登录成功</p>
+      <div class="login" slot="massge">
+        <img src="http://pic.616pic.com/ys_img/00/04/02/heYFSMORXg.jpg" alt="">
+      </div>
+      <button slot="btn" @click="loginShow = false">关闭</button>
+    </VueModal>
+
   </div>
 </template>
 
 <script>
-  var that;
+    import VueModal from '@/components/modal'
+    var that;
     export default {
+        components: {
+            VueModal
+        },
         data() {
             return {
                 loginDialogShow:false,
@@ -45,55 +58,92 @@
                 userPwd:"",
                 LoginError:false,
                 loginStatus:false,
-                userInfo:{}
+                loginShow:false
+            }
+        },
+        computed:{
+            userInfo(){
+                return  this.$store.state.userInfo
+            },
+            cartCount(){
+                return  this.$store.state.cartCount
             }
         },
         created() {
             that = this;
-            if(this.$cookies.get("userId")){
-                this.userInfo = this.$cookies.get("userId")
+            if(this.userInfo !== "null" && this.userInfo !== null){
                 this.loginStatus = true;
+                this.getCartCount();
+                // this.getUserInfo()
             }
         },
         methods: {
             submit(){
                 if(that.userName === "" && that.userPwd === "") return false;
-
-                that.$post("/user/login", {
+                this.$post("/user/login", {
                     name:this.userName,
                     password:this.userPwd
                 }).then(res => {
                     if (res.status === 0) {
-                        that.$message({
-                            message: '恭喜你，登录成功',
-                            type: 'success'
-                        });
-                        that.userInfo = res.result;
-                        that.$cookies.set("userId",res.result)
-                        that.loginDialogShow = false
-                        that.loginStatus = true;
+                        this.loginShow = true;
+                        this.$store.commit("updataUserInfo",res.result);
+
+                        this.loginDialogShow = false;
+                        this.loginStatus = true;
                     }else{
-                        that.LoginError = true
+                        this.LoginError = true
                     }
                 })
             },
             logOut(){
-                that.$confirm('退出登录, 是否继续?', '退出提醒', {
+                this.$confirm('退出登录, 是否继续?', '退出提醒', {
                     confirmButtonText: '退出',
                     cancelButtonText: '取消',
                     type: 'warning',
                     center: true
                 }).then(() => {
-                    that.$post("/user/logout").then(res => {
+                    this.$post("/user/logout").then(res => {
                         if (res.status === 0) {
-                            this.$cookies.remove("userId")
+                            this.$store.commit("updataUserInfo",null);
+                            this.$store.commit("updataCartCount",0);
                             this.loginStatus = false;
                         }
                     })
                 })
+            },
+            getUserInfo(){
+                this.$post("/user/info", {
+                    userId:this.userInfo.userId
+                }).then(res => {
+                    if (res.status === 0) {
+                        this.$store.commit("updataUserInfo",res.result.count);
+                    }else{
+                        this.$notify.error({
+                            title: '错误',
+                            message: '系统错误，未获取到用户信息'
+                        });
+                    }
+                })
+            },
+            getCartCount(){
+
+                this.$get("/cart/count", {
+                    userId:this.userInfo.userId
+                }).then(res => {
+                    if (res.status === 0) {
+                        this.$store.commit("updataCartCount",res.result.count);
+                    }else{
+                        this.$notify.error({
+                            title: '错误',
+                            message: '系统错误，未获取到用户订单'
+                        });
+                    }
+                })
+
+            },
+            closeModal(){
+                this.loginShow = false;
             }
-        },
-        destroyed() {
         }
     }
 </script>
@@ -290,6 +340,13 @@
 
           }
 
+        }
+
+        i{
+          font-size: 20px;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
         }
 
       }

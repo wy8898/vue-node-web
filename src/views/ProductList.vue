@@ -2,7 +2,7 @@
   <div>
     <vue-header></vue-header>
     <vue-bread>
-      <span slot="bread">12</span>
+      <span slot="bread">商品列表</span>
     </vue-bread>
 
     <div class="content">
@@ -37,17 +37,23 @@
       <img class="loadingimg" v-if="!busy" src="http://static.xuanbiaoqing.com/image/create/loading/default.gif" alt="">
     </div>
 
-    <VueModal :mdShow="mdShow">
-        <p slot="title">
-          登录提醒
-        </p>
-
-        <p slot="massge">
-          加入购物车请先登录
-        </p>
-
-      <button slot="btn">关闭</button>
+    <VueModal :mdShow="loginShow" v-on:close="closeModal">
+      <p class="title" slot="title">登录提醒</p>
+      <p slot="massge">加入购物车请先登录</p>
+      <button slot="btn" @click="loginShow = false">关闭</button>
     </VueModal>
+
+    <VueModal :mdShow="addCartShow" v-on:close="closeModal">
+      <p class="title" slot="title">加入购物车成功</p>
+      <div slot="massge">
+        <img src="https://static.easyicon.net/preview/114/1147445.gif" alt="">
+      </div>
+      <div slot="btn">
+        <a href="javascript:;" @click="addCartShow = false">继续购物</a>
+        <router-link to="/cart">查看购物车</router-link>
+      </div>
+    </VueModal>
+
     <vue-footer></vue-footer>
   </div>
 </template>
@@ -77,13 +83,14 @@
                 busy: false,
                 priceMin:null,
                 priceMax:null,
-                mdShow:false,
-                userInfo:{}
+                loginShow:false,
+                userInfo:{},
+                addCartShow:false
             }
         },
         created() {
-            if(this.$cookies.get("userId")){
-                this.userInfo = this.$cookies.get("userId")
+            if(this.$store.state.userInfo !== "null"){
+                this.userInfo = this.$store.state.userInfo
             }
         },
         methods: {
@@ -143,24 +150,26 @@
                 this.getproductList();
             },
             addCart(productId){
-                if(this.$cookies.get("userId")){
+                if(this.$store.state.userInfo !== "null"){
                     this.$post("/product/addCart", {
                         userId:this.userInfo.userId,
                         productId:productId
                     }).then(res => {
                         if (res.status === 0) {
-                            this.$message({
-                                message: '恭喜你，添加成功',
-                                type: 'success'
-                            });
+                            this.addCartShow = true;
+                            this.$store.commit("updataCartCount")
                         }else{
                             this.$message.error('错了哦，添加失败');
                         }
                     })
                 }else{
-                    this.mdShow = true;
+                    this.loginShow = true;
                 }
 
+            },
+            closeModal(){
+                this.loginShow = false;
+                this.addCartShow = false;
             }
         }
     }
@@ -183,8 +192,8 @@
       }
     }
   }
-  .productList {
 
+  .productList {
     &::after{
       clear: both;
       content: "";

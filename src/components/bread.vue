@@ -1,6 +1,6 @@
 <template>
     <nav>
-      <router-link to="/">home /</router-link>
+      <router-link to="/">主页 /</router-link>
       <slot name="bread"></slot>
     </nav>
 </template>

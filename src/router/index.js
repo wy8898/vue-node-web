@@ -10,9 +10,24 @@ export default new Router({
       component: resolve => require(['@/views/ProductList'], resolve)
     },
     {
-      path: '/cart/:cartId',
+      path: '/cart',
       name: 'cart',
       component: resolve => require(['@/views/Cart'], resolve)
+    },
+    {
+      path: '/address',
+      name: 'address',
+      component: resolve => require(['@/views/Address'], resolve)
+    },
+    {
+      path: '/orderConfirm',
+      name: 'orderConfirm',
+      component: resolve => require(['@/views/OrderConfirm'], resolve)
+    },
+    {
+      path: '/orderSuccess',
+      name: 'orderSuccess',
+      component: resolve => require(['@/views/orderSuccess'], resolve)
     }
   ]
 });
